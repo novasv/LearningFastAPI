@@ -1,2 +1,12 @@
-Colocar a API no AR: uvicorn main:app --reload
-- main pois o arquivo que executa é o main.py
+AULA 1:
+    Colocar a API no AR: uvicorn main:app --reload
+    - main pois o arquivo que executa é o main.py
+AULA 2:
+    Endpoint: http://127.0.0.1:8000 /ordens (path)
+    Requisições:
+    -GET - Ler informações
+    -POST - Criar informações
+    -PUT/PATCH - Editar informações
+    -DELETE - Apagar informações
+
+    APIS REST(FastAPI): Acessar por meio de endpoints - nos endpoints fazemos as requisições
