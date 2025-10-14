@@ -10,3 +10,7 @@ AULA 2:
     -DELETE - Apagar informações
 
     APIS REST(FastAPI): Acessar por meio de endpoints - nos endpoints fazemos as requisições
+
+AULA 3:
+    alembic revision --autogenerate -m (FAZER MIGRAÇÕES COM O ALEMBIC)
+    alembir upgrade head (EXECUTA A MIGRAÇÃO)
