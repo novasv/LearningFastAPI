@@ -1,0 +1,2 @@
+Colocar a API no AR: uvicorn main:app --reload
+- main pois o arquivo que executa é o main.py
