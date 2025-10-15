@@ -20,3 +20,6 @@ AULA 4:
     Comando yield, faz a função retornar um valor sem encerrar a execução
     Comando raise, não retorna mas levanta (usado para erros)
     Devemos receber os parâmetros da função nos objetos ao inves de na função (schema)
+
+AULA 5:
+    Login Usuario: login -> email e senha -> token JWT(Json Web Token)
