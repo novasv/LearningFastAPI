@@ -14,3 +14,9 @@ AULA 2:
 AULA 3:
     alembic revision --autogenerate -m (FAZER MIGRAÇÕES COM O ALEMBIC)
     alembir upgrade head (EXECUTA A MIGRAÇÃO)
+
+AULA 4:
+    Depends do fastapi permite criar uma sessão através fa função pegar_sessao (dependencies)
+    Comando yield, faz a função retornar um valor sem encerrar a execução
+    Comando raise, não retorna mas levanta (usado para erros)
+    Devemos receber os parâmetros da função nos objetos ao inves de na função (schema)
