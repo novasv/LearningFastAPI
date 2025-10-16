@@ -9,8 +9,8 @@ from datetime import datetime, timedelta, timezone
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
-def criar_token(id_usuario):
-    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+def criar_token(id_usuario, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
+    data_expiracao = datetime.now(timezone.utc) + duracao_token
     dic_info = {"sub" : id_usuario, "exp" : data_expiracao}
     encoded_jwt = jwt.encode(dic_info, SECRET_KEY, ALGORITHM) 
     return encoded_jwt
@@ -22,6 +22,10 @@ def autenticar_usuario(email, senha, session):
     elif not bcrypt_context.verify(senha, usuario.senha):
         return False
     
+    return usuario
+
+def verificar_token(token, session):
+    usuario = session.query(Usuario).filter(Usuario.id==1).first
     return usuario
 
 
@@ -52,5 +56,19 @@ async def login(login_schema : LoginSchema, session : Session = Depends(pegar_se
         raise HTTPException(status_code=400, detail="Usuário não encontrado ou credenciais invalidas.")
     else:
         access_token = criar_token(usuario.id)
-        return {"access_token" : access_token, "token_type" : "Bearer"} 
+        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        return {
+            "access_token" : access_token, "token_type" : "Bearer",
+            "refresh_token" : refresh_token,
+            } 
+
+
+@auth_router.get("/refresh")
+async def use_refresh_token(token, session : Session = Depends(pegar_sessao)):
+    #vericicar token
+    usuario = verificar_token(token, session)
+    access_token = criar_token(usuario.id)
+    return {
+            "access_token" : access_token, "token_type" : "Bearer",
+            } 
 
