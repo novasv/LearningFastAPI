@@ -32,3 +32,4 @@ class ItemPedidoSchema(BaseModel):
     sabor : str
     tamanho : str
     preco_unitario : float
+
