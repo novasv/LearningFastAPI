@@ -79,6 +79,7 @@ async def use_refresh_token(usuario : Usuario = Depends(verificar_token), ):
     #vericicar token
     access_token = criar_token(usuario.id)
     return {
-            "access_token" : access_token, "token_type" : "Bearer",
+            "access_token" : access_token,
+            "token_type" : "Bearer",
             } 
 

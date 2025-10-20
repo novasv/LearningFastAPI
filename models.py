@@ -35,8 +35,9 @@ class Pedido(Base):
     __tablename__ = "pedidos"
 
     #STATUS_PEDIDO = (
-     #   ("PENDENTE", "PENDENTE"), ("CANCELADO", "CANCELADO"), ("ENTREGUE", "ENTREGUE")
-       # )
+     #   ("PENDENTE", "PENDENTE"),
+     #  ("CANCELADO", "CANCELADO"),
+     #  ("ENTREGUE", "ENTREGUE") )
 
     id = id = Column("id", Integer, primary_key=True, autoincrement=True)
     status = Column("status", String, default="PENDENTE")
@@ -47,6 +48,8 @@ class Pedido(Base):
         self.usuario = usuario
         self.status = status
         self.preco = preco 
+
+        
 class ItemPedido(Base):
     __tablename__ = "pedido_itens"
 
