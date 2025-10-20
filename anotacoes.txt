@@ -23,3 +23,8 @@ AULA 4:
 
 AULA 5:
     Login Usuario: login -> email e senha -> token JWT(Json Web Token)
+
+AULA 9:
+    Fazer migration no DB:
+        criar a migração: alembic revision --autogenerate -m "Descrição da alteração"
+        executar migração: alembic upgrade head

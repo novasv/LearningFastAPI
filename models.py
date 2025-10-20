@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 #cria conexão do db
 db = create_engine("sqlite:///banco.db")
@@ -20,6 +20,7 @@ class Usuario(Base):
     senha = Column("senha", String)
     ativo = Column("ativo", Boolean)
     admin = Column("admin", Boolean, default=False)
+    pedidos = relationship("Pedido", cascade="all, delete")
     
     def __init__(self, nome, email, senha, ativo=True, admin = False):
         self.nome = nome
@@ -43,11 +44,23 @@ class Pedido(Base):
     status = Column("status", String, default="PENDENTE")
     usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
-    #itens =
+    itens = relationship("ItemPedido",cascade="all, delete") #relationship, usado para conectar tabelas sem criar dependencia #cascade serve para quando deletarmos em um ocorrer cascadeação para a os itens os deletando automaticamente
+
     def __init__(self, usuario, status = "PENDENTE", preco = 0):
         self.usuario = usuario
         self.status = status
-        self.preco = preco 
+        self.preco = preco
+
+    def calcular_preco(self, ):
+        """
+        Percorre todos os itens do pedido, soma todos os preços e edita no campo "preco" o valor final do pedido.
+        """
+        #preco_pedido = 0
+        #for item in self.itens:
+          # preco_item = item.preco_unitario * item.quantidade
+           # preco_pedido += preco_item
+        #abaixo segue a forma clean code de escrever o codigo acima
+        self.preco = sum(item.preco_unitario * item.quantidade for item in self.itens)
 
         
 class ItemPedido(Base):
