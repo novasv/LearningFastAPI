@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import PedidoSchema, ItemPedidoSchema
+from schemas import PedidoSchema, ItemPedidoSchema, ResponsePedidoSchema
 from sqlalchemy.orm import Session
 from dependencies import pegar_sessao, verificar_token
 from models import Pedido, Usuario, ItemPedido
+from typing import List
 
 
 order_router = APIRouter(prefix="/order", tags=["order"], dependencies=[Depends(verificar_token)])
@@ -10,14 +11,18 @@ order_router = APIRouter(prefix="/order", tags=["order"], dependencies=[Depends(
 @order_router.get("/")
 async def orders():
     """Esta é a rota padrão de pedidos da API. Todas as rotas dos pedidos precisam de autenticação"""
-    return {"mensagem":"Você acessou a rota padrão de orders"}
+    return {
+            "mensagem":"Você acessou a rota padrão de orders"
+            }
 
 @order_router.post("/pedido")
 async def create_order(pedido_schema : PedidoSchema, session : Session = Depends(pegar_sessao)):
     novo_pedido = Pedido(usuario=pedido_schema.usuario)
     session.add(novo_pedido)
     session.commit()
-    return {"msg" : f"Pedido criado com sucesso! Pedido nº {novo_pedido.id}"}
+    return {
+            "msg" : f"Pedido criado com sucesso! Pedido nº {novo_pedido.id}"
+            }
 
 @order_router.post("/pedido/cancelar/{id_pedido}")
 async def cancel_order(id_pedido : int, session : Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
@@ -28,8 +33,10 @@ async def cancel_order(id_pedido : int, session : Session = Depends(pegar_sessao
         raise HTTPException(status_code=401, detail="Você não tem autorização para acessar este tópico.")
     pedido.status = "CANCELADO"
     session.commit()
-    return {"msg":f"Pedido nº {pedido.id} Cancelado com Sucesso",
-             "pedido" : pedido}
+    return {
+            "msg":f"Pedido nº {pedido.id} Cancelado com Sucesso",
+             "pedido" : pedido
+             }
 
 @order_router.get("/list")
 async def list_orders( session: Session = Depends(pegar_sessao), usuario:Usuario=Depends(verificar_token)):
@@ -37,10 +44,12 @@ async def list_orders( session: Session = Depends(pegar_sessao), usuario:Usuario
         raise HTTPException(status_code=401, detail="Você não tem autorização para acessar este tópico.")
     else:
         pedidos = session.query(Pedido).all()
-        return {"pedidos":pedidos}
+        return {
+                "pedidos":pedidos
+                }
     
 
-@order_router.post("pedido/adicionar_item/{id_pedido}")
+@order_router.post("pedido/adicionar-item/{id_pedido}")
 async def add_item_order(id_pedido:int, item_pedido_schema: ItemPedidoSchema, session:Session = Depends(pegar_sessao), usuario: Usuario= Depends(verificar_token)):
     pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
     if not pedido:
@@ -51,8 +60,63 @@ async def add_item_order(id_pedido:int, item_pedido_schema: ItemPedidoSchema, se
     session.add(item_pedido) 
     pedido.calcular_preco()
     session.commit()
-    return {"msg": "Item adicionado ao pedido.",
+    return {
+            "msg": "Item adicionado ao pedido.",
             "item_id": item_pedido.id,
-            "preco_pedido": pedido.preco}
-        
+            "preco_pedido": pedido.preco
+            }
 
+
+@order_router.post("pedido/remover-item/{id_item_pedido}")
+async def remove_item_order(id_item_pedido:int, session:Session = Depends(pegar_sessao), usuario: Usuario= Depends(verificar_token)):
+    item_pedido = session.query(ItemPedido).filter(ItemPedido.id==id_item_pedido).first()
+    pedido = session.query(Pedido).filter(Pedido.id==item_pedido.pedido).first()
+    if not item_pedido:
+        return HTTPException(status_code=400, detail="Item no pedido Inexistente.")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Você não tem autorização para acessar este tópico.")
+    session.delete(item_pedido)
+    pedido.calcular_preco()
+    session.commit()
+    return {
+            "msg": "Item removido do pedido.",
+            "quantidade_itens_pedido":len(pedido.itens),
+            "preco_pedido": pedido.preco,
+            "pedido": pedido
+            }
+
+
+@order_router.post("/pedido/finalizar/{id_pedido}")
+async def post_order(id_pedido : int, session : Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido =session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=400, detail="Pedido não encontrado.")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Você não tem autorização para acessar este tópico.")
+    pedido.status = "FINALIZADO"
+    session.commit()
+    return {
+            "msg":f"Pedido nº {pedido.id} Finalizado com Sucesso",
+             "pedido" : pedido
+             }
+
+
+@order_router.get("/pedido/{id_pedido}")
+async def view_order(id_pedido: int, session : Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido =session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=400, detail="Pedido não encontrado.")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Você não tem autorização para acessar este tópico.")
+    return {
+            "msg": "Informações do pedido.",
+            "quantidade_itens_pedido":len(pedido.itens),
+            "preco_pedido": pedido.preco,
+            "pedido": pedido
+            }
+
+
+@order_router.get("/list/pedidos-usuario", response_model=List[ResponsePedidoSchema])
+async def list_orders( session: Session = Depends(pegar_sessao), usuario:Usuario=Depends(verificar_token)):
+    pedidos = session.query(Pedido).filter(Pedido.usuario == usuario.id).all()
+    return pedidos
